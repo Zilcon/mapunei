@@ -46,17 +46,41 @@ document.addEventListener('DOMContentLoaded', () => {
     /**
      * GASから地図データを非同期で取得する
      */
-    async function fetchData() {
-        try {
-            const response = await fetch(GAS_WEB_APP_URL);
-            if (!response.ok) throw new Error('Network response was not ok.');
-            mapData = await response.json();
-            renderMap(); // データを取得したら地図を初回描画
-        } catch (error) {
-            console.error('データの取得に失敗しました:', error);
-            alert('データの取得に失敗しました。');
-        }
-    }
+// script.js
+
+/**
+ * GASから地図データを非同期で取得する (JSONP版)
+ */
+async function fetchData() {
+    // データを取得中であることを示すためにローディング表示などをここに書くこともできる
+
+    // JSONPのためのコールバック関数を動的に作成
+    const callbackName = 'jsonp_callback_' + Date.now();
+    window[callbackName] = function(data) {
+        // 成功したら後処理
+        delete window[callbackName]; // 不要になった関数を削除
+        document.body.removeChild(script); // 不要になったscriptタグを削除
+        
+        // グローバル変数にデータを格納
+        mapData = data;
+        renderMap(); // 地図を描画
+        console.log('データの取得に成功しました。', mapData);
+    };
+
+    // scriptタグを動的に作成してGASにリクエストを送信
+    const script = document.createElement('script');
+    script.src = GAS_WEB_APP_URL + '?callback=' + callbackName; // URLの末尾に?callback=関数名 を追加
+    
+    // タイムアウト・エラー処理
+    script.onerror = () => {
+        delete window[callbackName];
+        document.body.removeChild(script);
+        console.error('データの取得に失敗しました: JSONPリクエストが失敗しました。');
+        alert('データの取得に失敗しました。URLやデプロイ設定を確認してください。');
+    };
+
+    document.body.appendChild(script);
+}
 
     /**
      * データをGASに送信してスプレッドシートを更新する
