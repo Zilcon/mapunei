@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- 設定 ---
-    const GAS_WEB_APP_URL = 'ここにGASのウェブアプリURLを貼り付け';
+    const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbx9aNJJBjKYiUEugf64_BuLXdOpYMmbU1tT_u3PTc5Z-fseGcx7oMpPmTGrD9cmOFJNZQ/exec';
     
     // --- DOM要素の取得 ---
     const mapSVG = document.getElementById('interactive-map');
