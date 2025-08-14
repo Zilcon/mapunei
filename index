@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>インタラクティブSVGマップ</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app-container">
+        <div id="map-wrapper">
+            <svg id="interactive-map" viewBox="0 0 1000 500">
+                <path id="state-jp-13" d="M..."></path>
+                <path id="state-jp-14" d="M..."></path>
+                </svg>
+        </div>
+
+        <div id="ui-panel">
+            <div id="info-box">
+                <p><strong>ステート:</strong> <span id="info-id"></span></p>
+                <p><strong>国:</strong> <span id="info-country"></span></p>
+                <p><strong>開発度:</strong> <span id="info-dev"></span></p>
+                </div>
+            
+            <div id="controls">
+                <label for="view-select">表示切替:</label>
+                <select id="view-select">
+                    <option value="国">国</option>
+                    <option value="開発度">開発度</option>
+                    <option value="データ1">データ1</option>
+                    </select>
+            </div>
+            
+            <div id="edit-panel">
+                <h3>データ編集</h3>
+                <input type="text" id="edit-country" placeholder="国名">
+                <input type="number" id="edit-dev" placeholder="開発度">
+                <button id="save-button">保存</button>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.1/dist/svg-pan-zoom.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
