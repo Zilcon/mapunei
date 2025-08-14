@@ -1,0 +1,63 @@
+body, html {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    font-family: sans-serif;
+    overflow: hidden; /* ページのスクロールを禁止 */
+}
+
+#app-container {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    flex-direction: column; /* スマホでは縦並び */
+}
+
+#map-wrapper {
+    flex-grow: 1;
+    width: 100%;
+    height: 70%; /* デフォルトの高さ */
+    overflow: hidden;
+}
+
+#interactive-map {
+    width: 100%;
+    height: 100%;
+}
+
+#interactive-map path {
+    stroke: #333;
+    stroke-width: 0.5;
+    fill: #ccc; /* デフォルトの塗り */
+    transition: fill 0.3s ease;
+}
+
+#interactive-map path:hover {
+    fill: #f39c12; /* マウスオーバー時の色 */
+    cursor: pointer;
+}
+
+#ui-panel {
+    background: #f4f4f4;
+    padding: 10px;
+    box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+    height: 30%; /* デフォルトの高さ */
+    overflow-y: auto;
+}
+
+/* PC用のレイアウト調整 */
+@media (min-width: 768px) {
+    #app-container {
+        flex-direction: row; /* PCでは横並び */
+    }
+    #map-wrapper {
+        width: 75%;
+        height: 100%;
+    }
+    #ui-panel {
+        width: 25%;
+        height: 100%;
+        box-shadow: -2px 0 5px rgba(0,0,0,0.1);
+    }
+}
