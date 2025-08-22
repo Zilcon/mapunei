@@ -35,11 +35,21 @@
         </div>
 
         <div id="ui-panel">
+            <div id="login-section">
+                <h3>ログイン</h3>
+                <select id="country-login-select">
+                    <option value="">国を選択...</option>
+                </select>
+                <button id="login-button">ログイン</button>
+                <p>ステータス: <strong id="login-status">ログアウト</strong></p>
+            </div>
+            <hr>
+
             <div id="info-box">
                 <p><strong>ステート:</strong> <span id="info-id"></span></p>
                 <p><strong>国:</strong> <span id="info-country"></span></p>
                 <p><strong>開発度:</strong> <span id="info-dev"></span></p>
-                </div>
+            </div>
             
             <div id="controls">
                 <label for="view-select">表示切替:</label>
@@ -47,15 +57,30 @@
                     <option value="国">国</option>
                     <option value="開発度">開発度</option>
                     <option value="データ1">データ1</option>
-                    </select>
+                    <option value="データ2">データ2</option>
+                    <option value="データ3">データ3</option>
+                    <option value="データ4">データ4</option>
+                    <option value="データ5">データ5</option>
+                    <option value="データ6">データ6</option>
+                    <option value="データ7">データ7</option>
+                </select>
             </div>
             
             <div id="edit-panel">
                 <h3>データ編集</h3>
-                <input type="text" id="edit-country" placeholder="国名">
-                <input type="number" id="edit-dev" placeholder="開発度">
-                <button id="save-button">保存</button>
-            </div>
+                <div class="edit-field" data-view="国">
+                    <label>国:</label>
+                    <input type="text" id="edit-country" placeholder="国名">
+                </div>
+                <div class="edit-field" data-view="開発度">
+                    <label>開発度:</label>
+                    <input type="number" id="edit-dev" placeholder="開発度">
+                </div>
+                 <div class="edit-field" data-view="データ1">
+                    <label>データ1:</label>
+                    <input type="text" id="edit-data1" placeholder="データ1">
+                </div>
+                <button id="save-button" disabled>保存</button> </div>
         </div>
     </div>
     
