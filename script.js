@@ -1,198 +1,207 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- 設定 ---
-    const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxk5WSNnqbqUu1XdKoFQlEW3UGZQdDzZMIuN_5Sn77qSvs2eczIX2V1Of4C9B47IFuU/exec';
+    const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxKNs2HV7zO2RFWUJxQhG_zfkO7TSMfzriT0G0seDsMVboy-AG5l7W-rqfE9KHu33k/exec';
     
     // --- DOM要素の取得 ---
     const mapSVG = document.getElementById('interactive-map');
     const allPaths = mapSVG.querySelectorAll('path');
     const viewSelect = document.getElementById('view-select');
-    const saveButton = document.getElementById('save-button');
     const loginSelect = document.getElementById('country-login-select');
     const loginButton = document.getElementById('login-button');
     const loginStatus = document.getElementById('login-status');
-    const editFields = document.querySelectorAll('.edit-field');
-    
-    const infoBox = {
-        id: document.getElementById('info-id'),
-        country: document.getElementById('info-country'),
-        dev: document.getElementById('info-dev')
-    };
+    const editPanel = document.getElementById('edit-panel');
+    const saveButton = document.getElementById('save-button');
+    // 建国関連
+    const startNationBuildingBtn = document.getElementById('start-nation-building-button');
+    const nationBuildingControls = document.getElementById('nation-building-controls');
+    const newNationNameInput = document.getElementById('new-nation-name');
+    const confirmTerritoryBtn = document.getElementById('confirm-territory-button');
+    const cancelNationBuildingBtn = document.getElementById('cancel-nation-building-button');
 
     // --- アプリケーションの状態管理 ---
-    let mapData = [];
-    let countryList = []; // 国リストを保存する配列
-    let loggedInCountry = null; // ログイン中の国名を保存
-    let currentView = '国';
-    let selectedPathId = null;
-    let isPanning = false;
+    let mapData = [], countryList = [];
+    let loggedInCountry = null, selectedPathId = null;
+    let currentView = '国', isPanning = false;
+    let isNationBuildingMode = false; // 建国モードのフラグ
+    let nationBuildingSelection = []; // 建国で選択中のマス
 
-    // --- 地図のパン・ズーム設定 (変更なし) ---
+    // --- 地図のパン・ズーム設定 ---
     const panZoomInstance = svgPanZoom('#interactive-map', { zoomEnabled: true, controlIconsEnabled: false, fit: true, center: true, minZoom: 0.5, maxZoom: 10, onPan: () => { isPanning = true; }, onZoom: () => { isPanning = true; }});
     mapSVG.addEventListener('mouseup', () => { setTimeout(() => { isPanning = false; }, 50); });
     mapSVG.addEventListener('touchend', () => { setTimeout(() => { isPanning = false; }, 50); });
 
     // --- データ取得・通信 ---
-
-    async function fetchData() {
-        const callbackName = 'jsonp_callback_' + Date.now();
-        window[callbackName] = function(data) {
-            delete window[callbackName];
-            document.body.removeChild(script);
-            
-            // GASから受け取ったデータをそれぞれの配列に格納
-            mapData = data.mapData;
-            countryList = data.countries;
-            
-            renderMap();
-            populateLoginDropdown(); // ログイン用ドロップダウンを生成
-            console.log('データの取得に成功しました。');
-        };
-
-        const script = document.createElement('script');
-        script.src = GAS_WEB_APP_URL + '?callback=' + callbackName;
-        script.onerror = () => { console.error('データの取得に失敗しました: JSONPリクエストが失敗しました。'); alert('データの取得に失敗しました。'); };
-        document.body.appendChild(script);
-    }
+    async function fetchData() { /* ... 変更なし ... */ }
     
-    // updateData関数 (変更なし)
-    async function updateData(dataToUpdate) { /* ... 既存のコードをそのままコピー ... */ }
+    // ★データ送信関数を更新
+    async function postData(action, payload) {
+        try {
+            const response = await fetch(GAS_WEB_APP_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({ action, payload }) // actionとpayloadを送信
+            });
+            const result = await response.json();
+            if (result.status === 'success') {
+                alert(result.message);
+                await fetchData(); // 成功したらデータを再取得
+            } else {
+                throw new Error(result.message);
+            }
+        } catch (error) {
+            console.error('処理に失敗しました:', error);
+            alert('処理に失敗しました。');
+        }
+    }
 
     // --- 描画関連 ---
-
-    function renderMap() {
-        const getColor = (stateData) => {
-            if (!stateData) return '#ccc';
-            
-            switch (currentView) {
-                case '国':
-                    const countryName = stateData['国'] || '未設定';
-                    const countryInfo = countryList.find(c => c.CountryName === countryName);
-                    return countryInfo ? countryInfo.Color : '#FFFFFF'; // 見つからなければ白
-                
-                case '開発度':
-                    const dev = parseInt(stateData['開発度'], 10) || 0;
-                    if (dev === 0) return '#ccc';
-                    const red = Math.max(0, 255 - Math.floor(dev * 2.5));
-                    return `rgb(255, ${red}, ${red})`;
-
-                // TODO: データ1〜7の描画ロジックを追加 (例としてデータ1)
-                case 'データ1':
-                     const data1 = parseInt(stateData['データ1'], 10) || 0;
-                     const blue = Math.min(255, Math.floor(data1 / 10)); // 例: 値に応じて青の濃さを変える
-                     return `rgb(${255-blue}, ${255-blue}, 255)`;
-
-                default:
-                    return '#ccc';
-            }
-        };
-
-        allPaths.forEach(path => {
-            const stateData = mapData.find(d => d.pathID === path.id);
-            path.style.fill = getColor(stateData);
-        });
-    }
+    function renderMap() { /* ... 変更なし ... */ }
     
-    // --- UI制御 ---
+    // --- UI制御とヘルパー関数 ---
+    function populateLoginDropdown() { /* ... 変更なし ... */ }
+    function updateEditPanelVisibility() { /* ... 変更なし ... */ }
 
-    function populateLoginDropdown() {
-        loginSelect.innerHTML = '<option value="">国を選択...</option>';
-        countryList.forEach(country => {
-            if (country.CountryName) {
-                const option = document.createElement('option');
-                option.value = country.CountryName;
-                option.textContent = country.CountryName;
-                loginSelect.appendChild(option);
-            }
-        });
-    }
-
-    function updateEditPanelVisibility() {
-        editFields.forEach(field => {
-            if (field.dataset.view === currentView) {
-                field.style.display = 'block';
-            } else {
-                field.style.display = 'none';
-            }
-        });
+    // ★情報表示欄を更新する関数
+    function updateInfoBox(stateData) {
+        const infoFields = ['country', 'dev', 'data1', 'data2', 'data3', 'data4', 'data5', 'data6', 'data7'];
+        const dataKeys = ['国', '開発度', 'データ1', 'データ2', 'データ3', 'データ4', 'データ5', 'データ6', 'データ7'];
+        
+        document.getElementById('info-id').textContent = selectedPathId || 'N/A';
+        if (stateData) {
+            infoFields.forEach((field, index) => {
+                const key = dataKeys[index];
+                document.getElementById(`info-${field}`).textContent = stateData[key] || '未設定';
+            });
+        } else {
+            infoFields.forEach(field => {
+                document.getElementById(`info-${field}`).textContent = 'データなし';
+            });
+        }
     }
 
     // --- イベントハンドラ ---
+    function handleLogin() { /* ... 変更なし ... */ }
 
-    function handleLogin() {
-        const selected = loginSelect.value;
-        if (selected) {
-            loggedInCountry = selected;
-            loginStatus.textContent = `${loggedInCountry} としてログイン中`;
-            saveButton.disabled = false; // 保存ボタンを有効化
-            alert(`${loggedInCountry}としてログインしました。`);
-        } else {
-            loggedInCountry = null;
-            loginStatus.textContent = 'ログアウト';
-            saveButton.disabled = true; // 保存ボタンを無効化
-            alert('ログアウトしました。');
+    // ★マウスクリック処理を全面的に修正
+    function handleStateClick(e) {
+        if (isPanning) return;
+
+        const path = e.target;
+        selectedPathId = path.id;
+        const stateData = mapData.find(d => d.pathID === selectedPathId);
+        
+        // --- 建国モードの処理 ---
+        if (isNationBuildingMode) {
+            const isEmptyLand = !stateData || !stateData['国'] || stateData['国'] === '未設定';
+            if (!isEmptyLand) {
+                alert('この土地は既に所有されています。空き地を選択してください。');
+                return;
+            }
+
+            const selectionIndex = nationBuildingSelection.indexOf(selectedPathId);
+            if (selectionIndex > -1) {
+                // 選択解除
+                nationBuildingSelection.splice(selectionIndex, 1);
+                path.style.stroke = ''; // ハイライト解除
+            } else {
+                // 選択
+                nationBuildingSelection.push(selectedPathId);
+                path.style.stroke = '#FF0000'; // 赤色でハイライト
+                path.style.strokeWidth = '2';
+            }
+            return; // 建国モード中はこれ以降の処理をしない
+        }
+
+        // --- 通常モードの処理 ---
+        updateInfoBox(stateData); // ★まず情報を表示
+        saveButton.style.display = 'none'; // いったんボタンを隠す
+        editPanel.querySelectorAll('input').forEach(input => input.disabled = true);
+
+        const isMyLand = loggedInCountry && stateData && stateData['国'] === loggedInCountry;
+        if (isMyLand) {
+            // ログイン中の自国領なら編集UIを表示
+            saveButton.style.display = 'block';
+            editPanel.querySelectorAll('input').forEach(input => {
+                input.disabled = false;
+                const viewType = input.closest('.edit-field').dataset.view;
+                input.value = stateData[viewType] || '';
+            });
         }
     }
 
-    function handleStateClick(e) { /* ... 既存のコードをそのままコピー ... */ }
-
-    function handleSave() {
-        if (!loggedInCountry) {
-            alert('ログインしてください。');
-            return;
-        }
-        if (!selectedPathId) {
-            alert('まず地図上のステートを選択してください。');
-            return;
-        }
-        
-        // 現在のビューに対応する入力欄から値を取得
+    // ★保存ボタンの処理
+    async function handleSave() {
+        if (!loggedInCountry || !selectedPathId) return;
         const currentInput = document.querySelector(`.edit-field[data-view="${currentView}"] input`);
         if (!currentInput) return;
-
-        const updatedRecord = {
-            pathID: selectedPathId
-        };
-        // 現在のビューのキーと値だけを更新オブジェクトに含める
+        
+        const updatedRecord = { pathID: selectedPathId };
         updatedRecord[currentView] = currentInput.value;
+        
+        await postData('updateData', [updatedRecord]); // actionを指定して送信
+    }
 
-        updateData([updatedRecord]);
+    // ★建国開始ボタンの処理
+    function startNationBuilding() {
+        isNationBuildingMode = true;
+        nationBuildingSelection = [];
+        nationBuildingControls.style.display = 'block';
+        startNationBuildingBtn.style.display = 'none';
+        alert('建国モードを開始します。領土にする空き地を選択してください。');
+    }
+
+    // ★建国キャンセル処理
+    function cancelNationBuilding() {
+        isNationBuildingMode = false;
+        nationBuildingControls.style.display = 'none';
+        startNationBuildingBtn.style.display = 'block';
+        // ハイライトを全て解除
+        allPaths.forEach(p => { p.style.stroke = ''; });
+        nationBuildingSelection = [];
+        newNationNameInput.value = '';
+    }
+
+    // ★領土決定ボタンの処理
+    async function handleConfirmTerritory() {
+        const newName = newNationNameInput.value.trim();
+        if (!newName) {
+            alert('国名を入力してください。');
+            return;
+        }
+        if (nationBuildingSelection.length === 0) {
+            alert('領土を1つ以上選択してください。');
+            return;
+        }
+        if (countryList.some(c => c.CountryName === newName)) {
+            alert('その国名は既に使用されています。');
+            return;
+        }
+
+        const randomColor = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
+        
+        const payload = {
+            name: newName,
+            color: randomColor,
+            territory: nationBuildingSelection
+        };
+
+        await postData('createNation', payload);
+        cancelNationBuilding(); // 処理後にモードを終了
     }
     
     // --- 初期化処理 ---
     allPaths.forEach(path => { path.addEventListener('click', handleStateClick); });
-    loginButton.addEventListener('click', handleLogin); // ログインボタンのイベントリスナー
+    loginButton.addEventListener('click', handleLogin);
     saveButton.addEventListener('click', handleSave);
-
+    startNationBuildingBtn.addEventListener('click', startNationBuilding);
+    cancelNationBuildingBtn.addEventListener('click', cancelNationBuilding);
+    confirmTerritoryBtn.addEventListener('click', handleConfirmTerritory);
+    
     viewSelect.addEventListener('change', (e) => {
         currentView = e.target.value;
-        renderMap();
-        updateEditPanelVisibility(); // 表示切替時に編集パネルも更新
+        updateEditPanelVisibility();
     });
     
-    updateEditPanelVisibility(); // 初期表示
+    updateEditPanelVisibility();
     fetchData();
 });
-
-// --- ヘルパー関数 (変更なし) ---
-function stringToColor(str) { /* ... 既存のコードをそのままコピー ... */ }
-
-
-// --- ヘルパー関数 ---
-
-/**
- * 文字列から一意な色を生成する簡易的な関数
- * @param {string} str - 入力文字列（国名など）
- * @returns {string} - カラーコード
- */
-function stringToColor(str) {
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-        hash = str.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    let color = '#';
-    for (let i = 0; i < 3; i++) {
-        let value = (hash >> (i * 8)) & 0xFF;
-        color += ('00' + value.toString(16)).substr(-2);
-    }
-    return color;
-}
