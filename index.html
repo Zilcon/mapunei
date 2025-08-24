@@ -44,11 +44,30 @@
                 <p>ステータス: <strong id="login-status">ログアウト</strong></p>
             </div>
             <hr>
+            
+            <div id="nation-building-section">
+                <h3>建国</h3>
+                <button id="start-nation-building-button">建国を開始</button>
+                <div id="nation-building-controls" style="display: none;">
+                    <p>領土にするマスをクリックで選択してください。</p>
+                    <input type="text" id="new-nation-name" placeholder="新しい国名を入力">
+                    <button id="confirm-territory-button">領土を決定</button>
+                    <button id="cancel-nation-building-button">キャンセル</button>
+                </div>
+            </div>
+            <hr>
 
             <div id="info-box">
-                <p><strong>ステート:</strong> <span id="info-id"></span></p>
-                <p><strong>国:</strong> <span id="info-country"></span></p>
-                <p><strong>開発度:</strong> <span id="info-dev"></span></p>
+                <p><strong>ステート:</strong> <span id="info-id">N/A</span></p>
+                <p><strong>国:</strong> <span id="info-country">N/A</span></p>
+                <p><strong>開発度:</strong> <span id="info-dev">N/A</span></p>
+                <p><strong>データ1:</strong> <span id="info-data1">N/A</span></p>
+                <p><strong>データ2:</strong> <span id="info-data2">N/A</span></p>
+                <p><strong>データ3:</strong> <span id="info-data3">N/A</span></p>
+                <p><strong>データ4:</strong> <span id="info-data4">N/A</span></p>
+                <p><strong>データ5:</strong> <span id="info-data5">N/A</span></p>
+                <p><strong>データ6:</strong> <span id="info-data6">N/A</span></p>
+                <p><strong>データ7:</strong> <span id="info-data7">N/A</span></p>
             </div>
             
             <div id="controls">
@@ -68,19 +87,18 @@
             
             <div id="edit-panel">
                 <h3>データ編集</h3>
-                <div class="edit-field" data-view="国">
-                    <label>国:</label>
-                    <input type="text" id="edit-country" placeholder="国名">
-                </div>
-                <div class="edit-field" data-view="開発度">
-                    <label>開発度:</label>
-                    <input type="number" id="edit-dev" placeholder="開発度">
-                </div>
-                 <div class="edit-field" data-view="データ1">
-                    <label>データ1:</label>
-                    <input type="text" id="edit-data1" placeholder="データ1">
-                </div>
-                <button id="save-button" disabled>保存</button> </div>
+                <div class="edit-field" data-view="国"><label>国:</label><input type="text" id="edit-country"></div>
+                <div class="edit-field" data-view="開発度"><label>開発度:</label><input type="number" id="edit-dev"></div>
+                <div class="edit-field" data-view="データ1"><label>データ1:</label><input type="text" id="edit-data1"></div>
+                <div class="edit-field" data-view="データ2"><label>データ2:</label><input type="text" id="edit-data2"></div>
+                <div class="edit-field" data-view="データ3"><label>データ3:</label><input type="text" id="edit-data3"></div>
+                <div class="edit-field" data-view="データ4"><label>データ4:</label><input type="text" id="edit-data4"></div>
+                <div class="edit-field" data-view="データ5"><label>データ5:</label><input type="text" id="edit-data5"></div>
+                <div class="edit-field" data-view="データ6"><label>データ6:</label><input type="text" id="edit-data6"></div>
+                <div class="edit-field" data-view="データ7"><label>データ7:</label><input type="text" id="edit-data7"></div>
+
+                <button id="save-button" style="display: none;">保存</button>
+            </div>
         </div>
     </div>
     
