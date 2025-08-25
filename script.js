@@ -2,26 +2,26 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- 設定 ---
     const GAS_WEB_APP_URL = 'https://script.google.com/macros/library/d/1NJ_HDrrcOaK5_YyEyCRv1-quIELAEiaxMpND34Wrg5Bx6IHczcZ9WqPw/8';
     
-    // --- DOM要素の取得 ---
-    const mapSVG = document.getElementById('interactive-map');
-    const allPaths = mapSVG.querySelectorAll('path');
-    const viewSelect = document.getElementById('view-select');
-    const loginSelect = document.getElementById('country-login-select');
-    const loginButton = document.getElementById('login-button');
-    const loginStatus = document.getElementById('login-status');
-    const infoBox = document.getElementById('info-box');
-    const editPanel = document.getElementById('edit-panel');
-    const saveButton = document.getElementById('save-button');
-    // 建国関連
-    const startNationBuildingBtn = document.getElementById('start-nation-building-button');
-    const nationBuildingControls = document.getElementById('nation-building-controls');
-    const newNationNameInput = document.getElementById('new-nation-name');
-    const confirmTerritoryBtn = document.getElementById('confirm-territory-button');
-    const cancelNationBuildingBtn = document.getElementById('cancel-nation-building-button');
-    // ズームボタン
-    const zoomInBtn = document.getElementById('zoom-in-btn');
-    const zoomOutBtn = document.getElementById('zoom-out-btn');
-    const resetZoomBtn = document.getElementById('reset-zoom-btn');
+  // --- DOM要素の取得 ---
+const mapSVG = document.getElementById('interactive-map');
+const allPaths = mapSVG.querySelectorAll('path');
+const viewSelect = document.getElementById('view-select');
+const loginSelect = document.getElementById('country-login-select');
+const loginButton = document.getElementById('login-button'); // ★この行を確認
+const loginStatus = document.getElementById('login-status');
+const infoBox = document.getElementById('info-box');
+const editPanel = document.getElementById('edit-panel');
+const saveButton = document.getElementById('save-button');
+// 建国関連
+const startNationBuildingBtn = document.getElementById('start-nation-building-button');
+const nationBuildingControls = document.getElementById('nation-building-controls');
+const newNationNameInput = document.getElementById('new-nation-name');
+const confirmTerritoryBtn = document.getElementById('confirm-territory-button');
+const cancelNationBuildingBtn = document.getElementById('cancel-nation-building-button');
+// ズームボタン
+const zoomInBtn = document.getElementById('zoom-in-btn');
+const zoomOutBtn = document.getElementById('zoom-out-btn');
+const resetZoomBtn = document.getElementById('reset-zoom-btn');
     
     // --- アプリケーションの状態管理 ---
     let mapData = [], countryList = [], mapDataHeader = [];
@@ -308,28 +308,31 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     // --- 初期化処理 ---
-    const startNationBuildingButton = document.getElementById('start-nation-building-button');
-    if (startNationBuildingButton) {
-        startNationBuildingButton.addEventListener('click', startNationBuilding);
-    }
-    const cancelNationBuildingButton = document.getElementById('cancel-nation-building-button');
-    if (cancelNationBuildingButton) {
-        cancelNationBuildingButton.addEventListener('click', cancelNationBuilding);
-    }
-    const confirmTerritoryButton = document.getElementById('confirm-territory-button');
-    if (confirmTerritoryButton) {
-        confirmTerritoryButton.addEventListener('click', handleConfirmTerritory);
-    }
+// --- 初期化処理 ---
+allPaths.forEach(path => { path.addEventListener('click', handleStateClick); });
 
-    allPaths.forEach(path => { path.addEventListener('click', handleStateClick); });
+if (loginButton) {
     loginButton.addEventListener('click', handleLogin);
+}
+if (saveButton) {
     saveButton.addEventListener('click', handleSave);
-    
+}
+if (startNationBuildingBtn) {
+    startNationBuildingBtn.addEventListener('click', startNationBuilding);
+}
+if (cancelNationBuildingBtn) {
+    cancelNationBuildingBtn.addEventListener('click', cancelNationBuilding);
+}
+if (confirmTerritoryBtn) {
+    confirmTerritoryBtn.addEventListener('click', handleConfirmTerritory);
+}
+if (viewSelect) {
     viewSelect.addEventListener('change', (e) => {
         currentView = e.target.value;
         renderMap();
         updateEditPanelVisibility();
     });
-    
-    fetchData();
+}
+
+fetchData();
 });
