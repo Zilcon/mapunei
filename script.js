@@ -1,34 +1,51 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- 設定 ---
-    const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzBmqBe_ZHlpDKZxlGoQImqQN2i1tDLv8XZ2yFmj9QW9OBdwwknlsh5wFcwRs08UAi-/exec';
+    const GAS_WEB_APP_URL = 'ここにあなたのGASウェブアプリURLを貼り付け';
     
     // --- DOM要素の取得 ---
     const mapSVG = document.getElementById('interactive-map');
     const allPaths = mapSVG.querySelectorAll('path');
     const viewSelect = document.getElementById('view-select');
     const loginSelect = document.getElementById('country-login-select');
-    const loginButton = document.getElementById('login-button');
-    const loginStatus = document.getElementById('login-status');
+    const infoBox = document.getElementById('info-box');
     const editPanel = document.getElementById('edit-panel');
     const saveButton = document.getElementById('save-button');
-    // 建国関連
-    const startNationBuildingBtn = document.getElementById('start-nation-building-button');
-    const nationBuildingControls = document.getElementById('nation-building-controls');
-    const newNationNameInput = document.getElementById('new-nation-name');
-    const confirmTerritoryBtn = document.getElementById('confirm-territory-button');
-    const cancelNationBuildingBtn = document.getElementById('cancel-nation-building-button');
-
+    // ズームボタン
+    const zoomInBtn = document.getElementById('zoom-in-btn');
+    const zoomOutBtn = document.getElementById('zoom-out-btn');
+    const resetZoomBtn = document.getElementById('reset-zoom-btn');
+    
     // --- アプリケーションの状態管理 ---
-    let mapData = [], countryList = [];
+    let mapData = [], countryList = [], mapDataHeader = [];
     let loggedInCountry = null, selectedPathId = null;
-    let currentView = '国', isPanning = false;
-    let isNationBuildingMode = false; // 建国モードのフラグ
-    let nationBuildingSelection = []; // 建国で選択中のマス
+    let currentView = '', isPanning = false;
+    let isNationBuildingMode = false, nationBuildingSelection = [];
 
-    // --- 地図のパン・ズーム設定 ---
-    const panZoomInstance = svgPanZoom('#interactive-map', { zoomEnabled: true, controlIconsEnabled: false, fit: true, center: true, minZoom: 0.5, maxZoom: 10, onPan: () => { isPanning = true; }, onZoom: () => { isPanning = true; }});
+    // --- 地図のパン・ズーム設定 (モバイル対応強化) ---
+    const panZoomInstance = svgPanZoom('#interactive-map', {
+        zoomEnabled: true,
+        controlIconsEnabled: false,
+        fit: true,
+        center: true,
+        minZoom: 0.5,
+        maxZoom: 10,
+        // タップとドラッグの誤認を減らす
+        beforePan: (oldPan, newPan) => {
+            if (isPanning) { return newPan; }
+            return false;
+        }
+    });
+    // マウス/タッチ操作でパン状態を管理
+    mapSVG.addEventListener('mousedown', () => { isPanning = true; });
+    mapSVG.addEventListener('touchstart', () => { isPanning = true; });
     mapSVG.addEventListener('mouseup', () => { setTimeout(() => { isPanning = false; }, 50); });
     mapSVG.addEventListener('touchend', () => { setTimeout(() => { isPanning = false; }, 50); });
+    
+    // ズームボタンのイベント
+    zoomInBtn.addEventListener('click', () => panZoomInstance.zoomIn());
+    zoomOutBtn.addEventListener('click', () => panZoomInstance.zoomOut());
+    resetZoomBtn.addEventListener('click', () => panZoomInstance.resetZoom());
+
 
     // --- データ取得・通信 ---
     async function fetchData() {
@@ -36,30 +53,22 @@ document.addEventListener('DOMContentLoaded', () => {
         window[callbackName] = function(data) {
             delete window[callbackName];
             const scriptTag = document.getElementById(callbackName);
-            if (scriptTag && scriptTag.parentNode) { 
-                scriptTag.parentNode.removeChild(scriptTag);
-            }
-            
-            if (data.status === 'error') {
-                alert('サーバーエラー: ' + data.message);
-                return;
-            }
+            if (scriptTag) { scriptTag.parentNode.removeChild(scriptTag); }
             
             mapData = data.mapData;
             countryList = data.countries;
+            mapDataHeader = data.mapDataHeader; // ★ヘッダー情報を取得
+            
+            // ★取得したヘッダーを基にUIを動的に構築
+            setupDynamicUI();
             
             renderMap();
             populateLoginDropdown();
             console.log('データの取得に成功しました。');
         };
-
         const script = document.createElement('script');
         script.id = callbackName;
         script.src = GAS_WEB_APP_URL + '?callback=' + callbackName;
-        script.onerror = () => { 
-            console.error('データの取得に失敗しました: JSONPリクエストが失敗しました。'); 
-            alert('データの取得に失敗しました。'); 
-        };
         document.body.appendChild(script);
     }
     
@@ -83,24 +92,60 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // --- ★UI動的構築 ---
+    function setupDynamicUI() {
+        // 表示切替ドロップダウンを生成
+        viewSelect.innerHTML = '';
+        mapDataHeader.forEach(header => {
+            if (header === 'pathID') return; // pathIDは表示しない
+            const option = document.createElement('option');
+            option.value = header;
+            option.textContent = header;
+            viewSelect.appendChild(option);
+        });
+        currentView = viewSelect.value; // 初期ビューを設定
+
+        // 情報表示欄を生成
+        infoBox.innerHTML = '<h3>情報</h3>'; // タイトルをリセット
+        mapDataHeader.forEach(header => {
+            const p = document.createElement('p');
+            p.innerHTML = `<strong>${header}:</strong> <span id="info-${header}">N/A</span>`;
+            infoBox.appendChild(p);
+        });
+
+        // 編集パネルを生成
+        editPanel.innerHTML = '<h3>データ編集</h3>'; // タイトルをリセット
+        mapDataHeader.forEach(header => {
+            if (header === 'pathID') return;
+            const isCountryField = header === '国'; // 「国」フィールドは特別扱い
+            const fieldDiv = document.createElement('div');
+            fieldDiv.className = 'edit-field';
+            fieldDiv.dataset.view = header;
+            fieldDiv.innerHTML = `<label>${header}:</label><input type="${isCountryField ? 'text' : 'number'}" id="edit-${header}" ${isCountryField ? 'readonly' : ''}>`;
+            editPanel.appendChild(fieldDiv);
+        });
+        editPanel.appendChild(saveButton); // 保存ボタンを末尾に再追加
+        
+        updateEditPanelVisibility();
+    }
+    
     // --- 描画関連 ---
-    const getColor = (stateData) => {
+    function getColor(stateData) {
         if (!stateData) return '#ccc';
-        switch (currentView) {
-            case '国':
-                const countryName = stateData['国'] || '未設定';
-                const countryInfo = countryList.find(c => c.CountryName === countryName);
-                return countryInfo ? countryInfo.Color : '#FFFFFF'; // 未設定国は白
-            case '開発度':
-                const dev = parseInt(stateData['開発度'], 10) || 0;
-                if (dev === 0) return '#ccc';
-                const red = Math.max(0, 255 - Math.floor(dev * 2.5));
-                return `rgb(255, ${red}, ${red})`;
-            // 必要に応じてデータ1〜7の描画ルールを追加
-            default:
-                return '#ccc';
+        
+        // ★動的なビューに対応
+        if (currentView === '国') {
+            const countryName = stateData['国'] || '未設定';
+            const countryInfo = countryList.find(c => c.CountryName === countryName);
+            return countryInfo ? countryInfo.Color : '#FFFFFF';
+        } else {
+            // 国以外の列は数値として扱い、汎用的なグラデーションを適用
+            const value = parseInt(stateData[currentView], 10) || 0;
+            if (value === 0) return '#eee';
+            const intensity = Math.min(200, Math.floor(value / 10)); // スケールは適宜調整
+            return `rgb(${255 - intensity}, ${255}, ${255 - intensity})`; // 緑系のグラデーション
         }
-    };
+    }
 
     function renderMap() {
         allPaths.forEach(path => {
@@ -130,26 +175,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateInfoBox(stateData) {
-        const infoFields = ['country', 'dev', 'data1', 'data2', 'data3', 'data4', 'data5', 'data6', 'data7'];
-        const dataKeys = ['国', '開発度', 'データ1', 'データ2', 'データ3', 'データ4', 'データ5', 'データ6', 'データ7'];
-        
-        document.getElementById('info-id').textContent = selectedPathId || 'N/A';
-        if (stateData) {
-            infoFields.forEach((field, index) => {
-                const key = dataKeys[index];
-                const element = document.getElementById(`info-${field}`);
-                if(element) {
-                    element.textContent = stateData[key] || '未設定';
-                }
-            });
-        } else {
-            infoFields.forEach(field => {
-                const element = document.getElementById(`info-${field}`);
-                if (element) {
-                    element.textContent = 'データなし';
-                }
-            });
-        }
+        mapDataHeader.forEach(header => {
+            const el = document.getElementById(`info-${header}`);
+            if (el) {
+                el.textContent = stateData ? (stateData[header] || '未設定') : 'データなし';
+            }
+        });
     }
 
     // --- イベントハンドラ ---
@@ -285,6 +316,5 @@ document.addEventListener('DOMContentLoaded', () => {
         updateEditPanelVisibility();
     });
     
-    updateEditPanelVisibility();
-    fetchData();
+    fetchData(); // 最初にデータを取得
 });
