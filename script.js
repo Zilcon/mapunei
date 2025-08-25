@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- 設定 ---
-    const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwk9TJx_Ks2p6JikoCUL9vqUAvQx95D2qwR63XlsEvVsnCRIPz8DSIVv9EvymxnEtIu/exec';
+    const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxJZzQ2GisgwUI3hsgFO0VR7C7FjHlCNon22K82rEvDCHiFPGtmDeLW5RByaspWKvdk/exec';
     
     // --- DOM要素の取得 ---
     const mapSVG = document.getElementById('interactive-map');
