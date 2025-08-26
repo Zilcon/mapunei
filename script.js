@@ -57,6 +57,12 @@ const resetZoomBtn = document.getElementById('reset-zoom-btn');
 
     // --- データ取得・通信 ---
     async function fetchData() {
+        // script.js の fetchData 関数内
+
+window[callbackName] = function(data) {
+    console.log("サーバーから受信したデータ:", data); // ★このデバッグ用の行を追加
+    delete window[callbackName];
+    // ... 以下、既存のコードが続く
         const callbackName = 'jsonp_callback_' + Date.now();
         window[callbackName] = function(data) {
             delete window[callbackName];
