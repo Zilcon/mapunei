@@ -1,0 +1,185 @@
+/* ===== 基本設定 ===== */
+body, html {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    overflow: hidden; /* ページ全体のスクロールを禁止 */
+    background-color: #f0f2f5;
+    font-size: 16px;
+    line-height: 1.5;
+}
+
+/* ===== 全体レイアウト ===== */
+#app-container {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    flex-direction: column; /* モバイルファースト：最初は縦積み */
+}
+
+/* ===== 地図エリア ===== */
+#map-wrapper {
+    flex-grow: 1; /* 残りのスペースを全て埋める */
+    position: relative; /* ズームボタンの基準位置にする */
+    overflow: hidden;
+    background-color: #ffffff;
+}
+
+#interactive-map {
+    width: 100%;
+    height: 100%;
+}
+
+#interactive-map path {
+    stroke: #333333; /* 境界線の色 */
+    stroke-width: 0.5;
+    fill: #cccccc; /* デフォルトの塗りつぶし色 */
+    transition: fill 0.2s ease-in-out; /* 色が変わる際のアニメーション */
+}
+
+#interactive-map path:hover {
+    fill: #b0b0b0; /* マウスオーバー時の色 */
+    cursor: pointer;
+}
+
+/* ズームコントロール */
+#zoom-controls {
+    position: absolute;
+    bottom: 15px;
+    right: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+#zoom-controls button {
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+    font-weight: bold;
+    border-radius: 50%; /* 丸いボタン */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+/* ===== UIパネルエリア ===== */
+#ui-panel {
+    background: #f8f9fa;
+    height: 40%; /* モバイルでの高さ */
+    padding: 1rem;
+    overflow-y: auto; /* 内容が多ければスクロール */
+    box-sizing: border-box;
+    border-top: 1px solid #dee2e6;
+}
+
+/* UIパネル内の各セクション */
+#ui-panel > div {
+    margin-bottom: 1.5rem;
+}
+
+#ui-panel h3 {
+    margin-top: 0;
+    margin-bottom: 0.75rem;
+    font-size: 1.1rem;
+    color: #343a40;
+    border-bottom: 1px solid #dee2e6;
+    padding-bottom: 0.5rem;
+}
+
+/* ===== フォーム部品の共通スタイル ===== */
+button, select, input[type="text"], input[type="number"] {
+    width: 100%;
+    padding: 0.5rem;
+    border-radius: 0.25rem;
+    border: 1px solid #ced4da;
+    font-size: 1rem;
+    box-sizing: border-box;
+    margin-top: 5px;
+}
+
+button {
+    cursor: pointer;
+    background-color: #007bff;
+    color: white;
+    font-weight: bold;
+    border-color: #007bff;
+    transition: background-color 0.2s ease;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+button:disabled {
+    background-color: #6c757d;
+    cursor: not-allowed;
+}
+
+/* 各ボタンの微調整 */
+#nation-building-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 10px; /* ボタン間の隙間 */
+}
+
+#confirm-territory-button {
+    background-color: #28a745; /* 緑 */
+    border-color: #28a745;
+}
+#confirm-territory-button:hover {
+    background-color: #218838;
+}
+
+#cancel-nation-building-button {
+    background-color: #dc3545; /* 赤 */
+    border-color: #dc3545;
+}
+#cancel-nation-building-button:hover {
+    background-color: #c82333;
+}
+
+/* ===== 情報表示欄 ===== */
+#info-box p {
+    margin: 0.25rem 0;
+    font-size: 0.9rem;
+}
+
+#info-box p strong {
+    display: inline-block;
+    width: 80px; /* ラベルの幅を揃える */
+    color: #495057;
+}
+
+/* ===== 編集パネル ===== */
+.edit-field {
+    margin-bottom: 0.75rem;
+}
+
+.edit-field label {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: bold;
+    margin-bottom: 0.25rem;
+}
+
+/* ===== PC用レイアウト (横幅768px以上) ===== */
+@media (min-width: 768px) {
+    #app-container {
+        flex-direction: row; /* 横並びに切り替え */
+    }
+
+    #map-wrapper {
+        width: 70%;
+        height: 100%;
+        border-top: none;
+        border-right: 1px solid #dee2e6;
+    }
+
+    #ui-panel {
+        width: 30%;
+        min-width: 320px; /* パネルが細くなりすぎないように */
+        height: 100%;
+        border-top: none;
+    }
+}
