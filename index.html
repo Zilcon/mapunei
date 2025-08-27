@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>インタラクティブSVGマップ</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app-container">
+        <div id="map-wrapper">
+            <svg id="interactive-map" viewBox="0 0 1000 500">
+                </svg>
+            
+            <div id="zoom-controls">
+                <button id="zoom-in-btn">+</button>
+                <button id="zoom-out-btn">-</button>
+                <button id="reset-zoom-btn">Reset</button>
+            </div>
+        </div>
+
+        <div id="ui-panel">
+            <div id="login-section">
+                <h3>ログイン</h3>
+                <select id="country-login-select"></select>
+                <button id="login-button">ログイン</button>
+                <p>ステータス: <strong id="login-status">ログアウト</strong></p>
+            </div>
+            <hr>
+            
+            <div id="nation-building-section">
+                <h3>建国</h3>
+                <button id="start-nation-building-button">建国を開始</button>
+                <div id="nation-building-controls" style="display: none;">
+                    <p>領土にするマスをクリックで選択してください。</p>
+                    <input type="text" id="new-nation-name" placeholder="新しい国名を入力">
+                    <button id="confirm-territory-button">領土を決定</button>
+                    <button id="cancel-nation-building-button">キャンセル</button>
+                </div>
+            </div>
+            <hr>
+
+            <div id="info-box"><h3>情報</h3></div>
+            <div id="controls">
+                <label for="view-select">表示切替:</label>
+                <select id="view-select"></select>
+            </div>
+            <div id="edit-panel">
+                <h3>データ編集</h3>
+                </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.1/dist/svg-pan-zoom.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
