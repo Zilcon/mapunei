@@ -1,7 +1,8 @@
 document.addEventListener('DOMContentLoaded', () => {
-  // --- 設定 ---
-  const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwvQgbYSmYCFJxM5-pRa2tpDQ-DJDJ0z1tTaPkAWplFNArjN1EV6M239WYsbJRgzBV0/exec';
-
+    // --- 設定 ---
+    const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbz-BbPqaFjyS6SFXI8mSQlLSlgCzLNz-7Efaow1yT5Pg6dNC5zDkWeb6jiLfTnqeqyY/exec';
+    
+    // --- DOM要素の取得 ---
     const mapSVG = document.getElementById('interactive-map');
     const allPaths = mapSVG.querySelectorAll('path');
     const viewSelect = document.getElementById('view-select');
@@ -27,8 +28,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- 地図のパン・ズーム設定 ---
     const panZoomInstance = svgPanZoom('#interactive-map', {
-        zoomEnabled: true, controlIconsEnabled: false, fit: true, center: true, minZoom: 0.5, maxZoom: 10,
-        beforePan: () => !isNationBuildingMode && isPanning, // 建国モード中はパンしない
+        zoomEnabled: true,
+        controlIconsEnabled: false,
+        fit: true,
+        center: true,
+        minZoom: 0.5,
+        maxZoom: 10,
+        beforePan: () => !isNationBuildingMode && isPanning,
     });
     mapSVG.addEventListener('mousedown', (e) => { if(e.button === 0) isPanning = true; });
     mapSVG.addEventListener('touchstart', () => { isPanning = true; });
@@ -46,7 +52,10 @@ document.addEventListener('DOMContentLoaded', () => {
             delete window[callbackName];
             const scriptTag = document.getElementById(callbackName);
             if (scriptTag && scriptTag.parentNode) { scriptTag.parentNode.removeChild(scriptTag); }
-            if (data.status === 'error') { alert('サーバーエラー: ' + data.message); return; }
+            if (data.status === 'error') {
+                alert('サーバーエラー: ' + data.message);
+                return;
+            }
             mapData = data.mapData;
             countryList = data.countries;
             mapDataHeader = data.mapDataHeader;
@@ -62,17 +71,25 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     async function postData(action, payload) {
         try {
-            const response = await fetch(GAS_WEB_APP_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action, payload }) });
+            const response = await fetch(GAS_WEB_APP_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({ action, payload })
+            });
             const result = await response.json();
             if (result.status === 'success') {
                 alert(result.message);
                 await fetchData();
             } else { throw new Error(result.message); }
-        } catch (error) { console.error('処理に失敗しました:', error); alert('処理に失敗しました。'); }
+        } catch (error) {
+            console.error('処理に失敗しました:', error);
+            alert('処理に失敗しました。');
+        }
     }
 
     // --- UI動的構築 ---
     function setupDynamicUI() {
+        // 表示切替ドロップダウン
         viewSelect.innerHTML = '';
         mapDataHeader.forEach(header => {
             if (header === 'pathID') return;
@@ -82,18 +99,23 @@ document.addEventListener('DOMContentLoaded', () => {
             viewSelect.appendChild(option);
         });
         currentView = viewSelect.value;
+
+        // 情報表示欄
         infoBox.innerHTML = '<h3>情報</h3>';
         mapDataHeader.forEach(header => {
             const p = document.createElement('p');
             p.innerHTML = `<strong>${header}:</strong> <span id="info-${header.replace(/\s/g, '')}">N/A</span>`;
             infoBox.appendChild(p);
         });
+
+        // 編集パネル
         editPanel.innerHTML = '<h3>データ編集</h3>';
         let saveButton = document.createElement('button');
         saveButton.id = 'save-button';
         saveButton.textContent = '保存';
         saveButton.style.display = 'none';
         saveButton.addEventListener('click', handleSave);
+
         mapDataHeader.forEach(header => {
             if (header === 'pathID') return;
             const isCountryField = header === '国';
@@ -104,6 +126,7 @@ document.addEventListener('DOMContentLoaded', () => {
             editPanel.appendChild(fieldDiv);
         });
         editPanel.appendChild(saveButton);
+        
         updateEditPanelVisibility();
     }
     
@@ -121,39 +144,80 @@ document.addEventListener('DOMContentLoaded', () => {
             return `rgb(${255 - intensity}, 255, ${255 - intensity})`;
         }
     }
-    function renderMap() { allPaths.forEach(path => { const stateData = mapData.find(d => d.pathID === path.id); path.style.fill = getColor(stateData); }); }
+    function renderMap() {
+        allPaths.forEach(path => {
+            const stateData = mapData.find(d => d.pathID === path.id);
+            path.style.fill = getColor(stateData);
+        });
+    }
     
     // --- UI制御とヘルパー関数 ---
     function populateLoginDropdown() {
         loginSelect.innerHTML = '<option value="">国を選択...</option>';
         if (!countryList) return;
-        countryList.forEach(country => { if (country.CountryName) { const option = document.createElement('option'); option.value = country.CountryName; option.textContent = country.CountryName; loginSelect.appendChild(option); } });
+        countryList.forEach(country => {
+            if (country.CountryName) {
+                const option = document.createElement('option');
+                option.value = country.CountryName;
+                option.textContent = country.CountryName;
+                loginSelect.appendChild(option);
+            }
+        });
     }
-    function updateEditPanelVisibility() { editPanel.querySelectorAll('.edit-field').forEach(field => { field.style.display = (field.dataset.view === currentView) ? 'block' : 'none'; }); }
-    function updateInfoBox(stateData) { mapDataHeader.forEach(header => { const el = document.getElementById(`info-${header.replace(/\s/g, '')}`); if (el) { el.textContent = stateData ? (stateData[header] || '未設定') : 'データなし'; } }); }
+    function updateEditPanelVisibility() {
+        editPanel.querySelectorAll('.edit-field').forEach(field => {
+            field.style.display = (field.dataset.view === currentView) ? 'block' : 'none';
+        });
+    }
+    function updateInfoBox(stateData) {
+        mapDataHeader.forEach(header => {
+            const el = document.getElementById(`info-${header.replace(/\s/g, '')}`);
+            if (el) {
+                el.textContent = stateData ? (stateData[header] || '未設定') : 'データなし';
+            }
+        });
+    }
 
     // --- イベントハンドラ ---
-    function handleLogin() { const selected = loginSelect.value; loggedInCountry = selected ? selected : null; loginStatus.textContent = selected ? `${selected} としてログイン中` : 'ログアウト'; }
+    function handleLogin() {
+        const selected = loginSelect.value;
+        loggedInCountry = selected ? selected : null;
+        loginStatus.textContent = selected ? `${selected} としてログイン中` : 'ログアウト';
+    }
     function handleStateClick(e) {
-        if (!isNationBuildingMode && isPanning) return; isPanning = false;
+        if (!isNationBuildingMode && isPanning) return;
+        isPanning = false;
+
         const path = e.target;
         selectedPathId = path.id;
         const stateData = mapData.find(d => d.pathID === selectedPathId);
+        
         if (isNationBuildingMode) {
             const isEmptyLand = !stateData || !stateData['国'] || stateData['国'] === '未設定';
-            if (!isEmptyLand) { alert('この土地は既に所有されています。空き地を選択してください。'); return; }
+            if (!isEmptyLand) {
+                alert('この土地は既に所有されています。空き地を選択してください。');
+                return;
+            }
             const selectionIndex = nationBuildingSelection.indexOf(selectedPathId);
-            if (selectionIndex > -1) { nationBuildingSelection.splice(selectionIndex, 1); path.style.fill = '#FFFFFF'; }
-            else { nationBuildingSelection.push(selectedPathId); path.style.fill = '#FFD700'; }
+            if (selectionIndex > -1) {
+                nationBuildingSelection.splice(selectionIndex, 1);
+                path.style.fill = '#FFFFFF';
+            } else {
+                nationBuildingSelection.push(selectedPathId);
+                path.style.fill = '#FFD700';
+            }
             return;
         }
+
         updateInfoBox(stateData);
         const saveBtn = document.getElementById('save-button');
-        saveBtn.style.display = 'none';
+        if (saveBtn) { saveBtn.style.display = 'none'; }
+        
         editPanel.querySelectorAll('input').forEach(input => input.disabled = true);
+        
         const isMyLand = loggedInCountry && stateData && stateData['国'] === loggedInCountry;
         if (isMyLand) {
-            saveBtn.style.display = 'block';
+            if (saveBtn) { saveBtn.style.display = 'block'; }
             editPanel.querySelectorAll('input').forEach(input => {
                 input.disabled = false;
                 const viewType = input.closest('.edit-field').dataset.view;
@@ -162,20 +226,48 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     async function handleSave() {
-        if (!loggedInCountry || !selectedPathId) { alert('ログインしていないか、マスが選択されていません。'); return; }
+        if (!loggedInCountry || !selectedPathId) {
+            alert('ログインしていないか、マスが選択されていません。');
+            return;
+        }
         const currentInput = editPanel.querySelector(`.edit-field[data-view="${currentView}"] input`);
-        if (!currentInput || currentInput.disabled) { alert('このデータは編集できません。'); return; }
+        if (!currentInput || currentInput.disabled) {
+            alert('このデータは編集できません。');
+            return;
+        }
         const updatedRecord = { pathID: selectedPathId };
         updatedRecord[currentView] = currentInput.value;
         await postData('updateData', [updatedRecord]);
     }
-    function startNationBuilding() { isNationBuildingMode = true; nationBuildingSelection = []; nationBuildingControls.style.display = 'block'; startNationBuildingBtn.style.display = 'none'; alert('建国モードを開始します。領土にする空き地を選択してください。'); }
-    function cancelNationBuilding() { isNationBuildingMode = false; nationBuildingControls.style.display = 'none'; startNationBuildingBtn.style.display = 'block'; renderMap(); nationBuildingSelection = []; newNationNameInput.value = ''; }
+    function startNationBuilding() {
+        isNationBuildingMode = true;
+        nationBuildingSelection = [];
+        nationBuildingControls.style.display = 'block';
+        startNationBuildingBtn.style.display = 'none';
+        alert('建国モードを開始します。領土にする空き地を選択してください。');
+    }
+    function cancelNationBuilding() {
+        isNationBuildingMode = false;
+        nationBuildingControls.style.display = 'none';
+        startNationBuildingBtn.style.display = 'block';
+        renderMap();
+        nationBuildingSelection = [];
+        newNationNameInput.value = '';
+    }
     async function handleConfirmTerritory() {
         const newName = newNationNameInput.value.trim();
-        if (!newName) { alert('国名を入力してください。'); return; }
-        if (nationBuildingSelection.length === 0) { alert('領土を1つ以上選択してください。'); return; }
-        if (countryList.some(c => c.CountryName === newName)) { alert('その国名は既に使用されています。'); return; }
+        if (!newName) {
+            alert('国名を入力してください。');
+            return;
+        }
+        if (nationBuildingSelection.length === 0) {
+            alert('領土を1つ以上選択してください。');
+            return;
+        }
+        if (countryList.some(c => c.CountryName === newName)) {
+            alert('その国名は既に使用されています。');
+            return;
+        }
         const randomColor = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
         const payload = { name: newName, color: randomColor, territory: nationBuildingSelection };
         await postData('createNation', payload);
@@ -188,7 +280,11 @@ document.addEventListener('DOMContentLoaded', () => {
     startNationBuildingBtn.addEventListener('click', startNationBuilding);
     cancelNationBuildingBtn.addEventListener('click', cancelNationBuilding);
     confirmTerritoryBtn.addEventListener('click', handleConfirmTerritory);
-    viewSelect.addEventListener('change', (e) => { currentView = e.target.value; renderMap(); updateEditPanelVisibility(); });
+    viewSelect.addEventListener('change', (e) => {
+        currentView = e.target.value;
+        renderMap();
+        updateEditPanelVisibility();
+    });
     
     fetchData();
 });
